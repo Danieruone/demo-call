@@ -7,6 +7,7 @@ export const Main = () => {
     <div className='container'>
       <UserIcon />
       <UserIcon />
+      <UserIcon />
       <ControlsPanel />
     </div>
   );
