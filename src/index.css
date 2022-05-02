@@ -57,8 +57,16 @@ code {
   margin: 0 10px 0 10px;
 }
 
+.controlPanelOption:hover {
+  background-color: gray;
+}
+
 .endCall {
   background-color: #ea5044;
   width: 50px;
   border-radius: 30px;
+}
+
+.endCall:hover {
+  background-color: #ea5044;
 }
