@@ -4,6 +4,9 @@ import { useEffect, useState } from 'react';
 import { UserIcon } from '../Components/UserIcon';
 import { ControlsPanel } from '../Components/ControlsPanel';
 
+// UI
+import { CircularProgress } from '@mui/material';
+
 // router
 import { useNavigate, useParams } from 'react-router-dom';
 
@@ -43,9 +46,11 @@ export const Main = () => {
 
   return (
     <div className='container'>
-      {usersInRoom.map((user, idx) => (
-        <UserIcon key={idx} {...user} />
-      ))}
+      {usersInRoom.length === 0 ? (
+        <CircularProgress />
+      ) : (
+        usersInRoom.map((user, idx) => <UserIcon key={idx} {...user} />)
+      )}
       <ControlsPanel />
     </div>
   );
