@@ -29,7 +29,7 @@ const style = {
 };
 
 export const Home = () => {
-  let navigate = useNavigate();
+  const navigate = useNavigate();
 
   const [usernameModal, setUsernameModal] = useState(false);
   const [username, setUsername] = useState('');
