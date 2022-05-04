@@ -40,6 +40,7 @@ export const Main = () => {
     }
 
     return () => {
+      console.log('leave emitted');
       socket.emit('leave', uuid);
     };
   }, []);
