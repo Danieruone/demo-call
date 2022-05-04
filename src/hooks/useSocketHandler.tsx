@@ -20,5 +20,11 @@ export const useSocketHandler = () => {
     }
   }, [socket]);
 
+  useEffect(() => {
+    if (socket) {
+      socket.on('disconnect', () => console.log('client disconnected'));
+    }
+  }, [socket]);
+
   return { socket };
 };

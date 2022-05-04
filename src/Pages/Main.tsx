@@ -27,13 +27,10 @@ export const Main: FC<Props> = ({ socket }) => {
     if (!localStorage.getItem('user_name')) {
       navigate('/');
     }
-
-    return () => socket && socket.emit('leave', uuid);
   }, []);
 
   useEffect(() => {
     if (socket) {
-      console.log('emit join');
       socket.emit('join', {
         room: uuid,
         peer: 'test1',
@@ -42,14 +39,16 @@ export const Main: FC<Props> = ({ socket }) => {
 
       socket.on('users', (data: any) => setUsersInRoom(data.users));
 
-      socket.on('userConnected', (data: User) => {
-        setUsersInRoom((prev) => [...prev, data]);
-      });
+      socket.on('userConnected', (data: User) =>
+        setUsersInRoom((prev) => [...prev, data])
+      );
 
-      socket.on('leave', (data: any) => {
-        setUsersInRoom((prev) => prev.filter((user) => user.id !== data));
-      });
+      socket.on('leave', (data: any) =>
+        setUsersInRoom((prev) => prev.filter((user) => user.id !== data))
+      );
     }
+
+    return () => socket && socket.emit('leave', uuid);
   }, [socket]);
 
   return (

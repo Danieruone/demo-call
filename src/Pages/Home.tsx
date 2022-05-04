@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 // router
 import { useNavigate } from 'react-router-dom';
