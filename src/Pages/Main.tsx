@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, FC } from 'react';
 
 // components
 import { UserIcon } from '../Components/UserIcon';
@@ -10,40 +10,47 @@ import { CircularProgress } from '@mui/material';
 // router
 import { useNavigate, useParams } from 'react-router-dom';
 
-// hooks
-import { useSocketHandler } from '../hooks/useSocketHandler';
-
 // types
 import { User } from '../Interfaces/User';
 
-export const Main = () => {
+interface Props {
+  socket: any;
+}
+
+export const Main: FC<Props> = ({ socket }) => {
   const navigate = useNavigate();
   const { uuid } = useParams();
-  const { socket } = useSocketHandler();
 
   const [usersInRoom, setUsersInRoom] = useState<User[]>([]);
 
   useEffect(() => {
     if (!localStorage.getItem('user_name')) {
       navigate('/');
-    } else {
+    }
+
+    return () => socket && socket.emit('leave', uuid);
+  }, []);
+
+  useEffect(() => {
+    if (socket) {
+      console.log('emit join');
       socket.emit('join', {
         room: uuid,
         peer: 'test1',
         name: localStorage.getItem('user_name'),
       });
 
-      socket.on('users', (data) => setUsersInRoom(data.users));
-      socket.on('userConnected', (data) =>
-        setUsersInRoom((prev) => [...prev, data])
-      );
-    }
+      socket.on('users', (data: any) => setUsersInRoom(data.users));
 
-    return () => {
-      console.log('leave emitted');
-      socket.emit('leave', uuid);
-    };
-  }, []);
+      socket.on('userConnected', (data: User) => {
+        setUsersInRoom((prev) => [...prev, data]);
+      });
+
+      socket.on('leave', (data: any) => {
+        setUsersInRoom((prev) => prev.filter((user) => user.id !== data));
+      });
+    }
+  }, [socket]);
 
   return (
     <div className='container'>

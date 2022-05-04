@@ -1,29 +1,24 @@
-import { useState, useEffect, useMemo } from 'react';
-import { io } from 'socket.io-client';
+import { useState, useEffect } from 'react';
+import { io, Socket } from 'socket.io-client';
 
 export const useSocketHandler = () => {
   const SOCKET_URL = 'wss://meet-app-dev.herokuapp.com/meet';
 
-  const [online, setOnline] = useState(false);
-
-  const socket = useMemo(() => {
-    return io(SOCKET_URL, {
-      transports: ['websocket'],
-    });
-  }, [SOCKET_URL]);
+  const [socket, setsocket] = useState<Socket>();
 
   useEffect(() => {
-    socket.on('connect', () => {
-      console.log('client connected');
-      setOnline(true);
-    });
-  }, [socket]);
+    setsocket(
+      io(SOCKET_URL, {
+        transports: ['websocket'],
+      })
+    );
+  }, []);
 
   useEffect(() => {
-    socket.on('disconnect', () => {
-      setOnline(false);
-    });
+    if (socket) {
+      socket.on('connect', () => console.log('client connected'));
+    }
   }, [socket]);
 
-  return { socket, online };
+  return { socket };
 };
