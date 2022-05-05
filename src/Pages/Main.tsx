@@ -22,13 +22,12 @@ export const Main: FC<Props> = ({ socket }) => {
   const navigate = useNavigate();
   const { uuid } = useParams();
 
-  const videoTag = useRef<any>({});
-
   const [usersInRoom, setUsersInRoom] = useState<User[]>([]);
 
   // peer
   const [peer, setPeer] = useState<any>(new Peer());
   const [peerId, setPeerId] = useState();
+  const [streams, setStreams] = useState<any[]>([]);
 
   useEffect(() => {
     if (!localStorage.getItem('user_name')) {
@@ -37,29 +36,40 @@ export const Main: FC<Props> = ({ socket }) => {
 
     peer.on('connection', function (conn: any) {
       conn.on('data', function (data: any) {
-        // Will print 'hi!'
-        console.log(data);
+        const emittedData = JSON.parse(data);
+        if (
+          !streams.some(
+            (stream) => stream.remoteStream.id === emittedData.remoteStreamId
+          )
+        ) {
+          setStreams((prev) =>
+            prev.map((stream) => {
+              if (stream.remoteStream.id === emittedData.remoteStreamId) {
+                return { ...stream, ...emittedData };
+              } else {
+                return stream;
+              }
+            })
+          );
+        }
       });
     });
 
     navigator.mediaDevices
       .getUserMedia({ video: true, audio: true })
       .then((stream) => {
-        peer.on(
-          'call',
-          function (call: any) {
-            call.answer(stream);
-            call.on('stream', function (remoteStream: any) {
-              videoTag.current.srcObject = remoteStream;
-              videoTag.current.addEventListener('loadedmetadata', () => {
-                videoTag.current.play();
-              });
-            });
-          },
-          function (err: any) {
-            console.log('Failed to get local stream', err);
-          }
-        );
+        peer.on('call', function (call: any) {
+          call.answer(stream);
+          call.on('stream', function (remoteStream: any) {
+            if (
+              !streams.some(
+                (stream) => stream.remoteStream.id === remoteStream.id
+              )
+            ) {
+              setStreams((prev) => [...prev, { remoteStream }]);
+            }
+          });
+        });
       });
 
     peer.on('open', function (id: any) {
@@ -88,10 +98,24 @@ export const Main: FC<Props> = ({ socket }) => {
             .then((stream) => {
               const call = peer.call(data.peer, stream);
               call.on('stream', function (remoteStream: any) {
-                videoTag.current.srcObject = remoteStream;
-                videoTag.current.addEventListener('loadedmetadata', () => {
-                  videoTag.current.play();
-                });
+                if (
+                  !streams.some(
+                    (stream) => stream.remoteStream.id === remoteStream.id
+                  )
+                ) {
+                  setStreams((prev) => [
+                    ...prev,
+                    { remoteStream, peer: data.peer, name: data.name },
+                  ]);
+
+                  conn.send(
+                    JSON.stringify({
+                      name: localStorage.getItem('user_name'),
+                      peer: peerId,
+                      remoteStreamId: stream.id,
+                    })
+                  );
+                }
               });
             });
         });
@@ -107,14 +131,12 @@ export const Main: FC<Props> = ({ socket }) => {
 
   return (
     <div className='container'>
-      <div>
-        <video ref={videoTag} />
-        <video ref={videoTag} />
-      </div>
       {usersInRoom.length === 0 ? (
         <CircularProgress />
       ) : (
-        usersInRoom.map((user, idx) => <UserIcon key={idx} {...user} />)
+        usersInRoom.map((user, idx) => (
+          <UserIcon key={idx} {...user} streams={streams} />
+        ))
       )}
       <ControlsPanel />
     </div>
