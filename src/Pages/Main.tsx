@@ -50,7 +50,7 @@ export const Main: FC<Props> = ({ socket }) => {
           function (call: any) {
             call.answer(stream);
             call.on('stream', function (remoteStream: any) {
-              videoTag.current.srcObject = stream;
+              videoTag.current.srcObject = remoteStream;
               videoTag.current.addEventListener('loadedmetadata', () => {
                 videoTag.current.play();
               });
@@ -88,7 +88,7 @@ export const Main: FC<Props> = ({ socket }) => {
             .then((stream) => {
               const call = peer.call(data.peer, stream);
               call.on('stream', function (remoteStream: any) {
-                videoTag.current.srcObject = stream;
+                videoTag.current.srcObject = remoteStream;
                 videoTag.current.addEventListener('loadedmetadata', () => {
                   videoTag.current.play();
                 });
@@ -108,6 +108,7 @@ export const Main: FC<Props> = ({ socket }) => {
   return (
     <div className='container'>
       <div>
+        <video ref={videoTag} />
         <video ref={videoTag} />
       </div>
       {usersInRoom.length === 0 ? (
