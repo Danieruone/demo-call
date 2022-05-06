@@ -1,13 +1,22 @@
 import { FC, useEffect, useRef, useState } from 'react';
 import { User } from '../Interfaces/User';
 
-export const UserIcon: FC<User & { streams: any }> = ({ name, streams }) => {
+export const UserIcon: FC<User & { streams: any; personalStream: any }> = ({
+  name,
+  streams,
+  personalStream,
+}) => {
   const [stream, setStream] = useState<any>();
 
   const videoTag = useRef<any>();
 
   useEffect(() => {
-    setStream(streams.find((media: any) => media.name === name));
+    console.log(streams);
+    const streamToRender = streams.find((media: any) => media.name === name);
+    if (streamToRender) {
+      setStream(streamToRender);
+    }
+    return () => setStream(null);
   }, [streams]);
 
   useEffect(() => {
