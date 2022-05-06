@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, FC } from 'react';
+import { useEffect, useState, FC } from 'react';
 import Peer from 'peerjs';
 
 // components
@@ -25,18 +25,26 @@ export const Main: FC<Props> = ({ socket }) => {
   const [usersInRoom, setUsersInRoom] = useState<User[]>([]);
 
   // peer
-  const [peer, setPeer] = useState<any>(new Peer());
+  const peer = new Peer();
   const [peerId, setPeerId] = useState();
   const [streams, setStreams] = useState<any[]>([]);
+  const [personalStream, setPersonalStream] = useState<any>();
 
   useEffect(() => {
     if (!localStorage.getItem('user_name')) {
       navigate('/');
     }
 
+    peer.on('open', function (id: any) {
+      setPeerId(id);
+    });
+  }, []);
+
+  useEffect(() => {
     peer.on('connection', function (conn: any) {
       conn.on('data', function (data: any) {
         const emittedData = JSON.parse(data);
+
         if (
           !streams.some(
             (stream) => stream.remoteStream.id === emittedData.remoteStreamId
@@ -61,6 +69,8 @@ export const Main: FC<Props> = ({ socket }) => {
         peer.on('call', function (call: any) {
           call.answer(stream);
           call.on('stream', function (remoteStream: any) {
+            console.log('llegó remote:', remoteStream);
+            setPersonalStream(stream);
             if (
               !streams.some(
                 (stream) => stream.remoteStream.id === remoteStream.id
@@ -71,11 +81,7 @@ export const Main: FC<Props> = ({ socket }) => {
           });
         });
       });
-
-    peer.on('open', function (id: any) {
-      setPeerId(id);
-    });
-  }, []);
+  }, [streams]);
 
   useEffect(() => {
     if (socket && peerId) {
@@ -98,6 +104,8 @@ export const Main: FC<Props> = ({ socket }) => {
             .then((stream) => {
               const call = peer.call(data.peer, stream);
               call.on('stream', function (remoteStream: any) {
+                console.log('contestó remote:', remoteStream);
+                setPersonalStream(stream);
                 if (
                   !streams.some(
                     (stream) => stream.remoteStream.id === remoteStream.id
@@ -120,14 +128,24 @@ export const Main: FC<Props> = ({ socket }) => {
             });
         });
       });
-
-      socket.on('leave', (data: any) =>
-        setUsersInRoom((prev) => prev.filter((user) => user.id !== data))
-      );
     }
 
     return () => socket && socket.emit('leave', uuid);
   }, [socket, peerId]);
+
+  useEffect(() => {
+    if (socket) {
+      socket.on('leave', (data: string) => {
+        const userLeaved = usersInRoom.find((user) => user.id !== data);
+        setUsersInRoom((prev) => prev.filter((user) => user.id !== data));
+        if (userLeaved) {
+          setStreams((prev) =>
+            prev.filter((user) => user.name !== userLeaved.name)
+          );
+        }
+      });
+    }
+  }, [usersInRoom, socket]);
 
   return (
     <div className='container'>
@@ -135,7 +153,12 @@ export const Main: FC<Props> = ({ socket }) => {
         <CircularProgress />
       ) : (
         usersInRoom.map((user, idx) => (
-          <UserIcon key={idx} {...user} streams={streams} />
+          <UserIcon
+            key={idx}
+            {...user}
+            streams={streams}
+            personalStream={personalStream}
+          />
         ))
       )}
       <ControlsPanel />
