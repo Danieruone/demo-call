@@ -1,8 +1,8 @@
 import { FC } from 'react';
 
 // components
-import { UserIcon } from '../Components/UserIcon';
-import { ControlsPanel } from '../Components/ControlsPanel';
+import { UserIcon } from '../components/UserIcon';
+import { ControlsPanel } from '../components/ControlsPanel';
 
 // UI
 import { CircularProgress } from '@mui/material';
