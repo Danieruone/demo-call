@@ -5,7 +5,7 @@ import Peer from 'peerjs';
 import { useNavigate, useParams } from 'react-router-dom';
 
 // types
-import { User } from '../Interfaces/User';
+import { User } from '../interfaces/User';
 
 export const useConnection = (socket: any) => {
   const { uuid } = useParams();

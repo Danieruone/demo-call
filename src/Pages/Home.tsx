@@ -53,6 +53,10 @@ export const Home = () => {
   return (
     <>
       <div className='homeContainer'>
+        <Typography style={{ marginBottom: 30 }}>
+          Create your meeting room
+        </Typography>
+
         <Button variant='outlined' onClick={generateUUID}>
           Create meeting room
         </Button>
