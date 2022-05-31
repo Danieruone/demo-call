@@ -15,7 +15,7 @@ export const UserIcon: FC<User & { streams: any }> = ({ name, streams }) => {
       setStream(streamToRender);
     }
     return () => setStream(null);
-  }, [streams]);
+  }, [streams, name]);
 
   useEffect(() => {
     if (stream) {

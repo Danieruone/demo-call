@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import Peer from 'peerjs';
 
 // router
@@ -15,18 +15,19 @@ export const useConnection = (socket: any) => {
   const [usersInRoom, setUsersInRoom] = useState<User[]>([]);
 
   // peer
-  const peer = new Peer();
-  const [peerId, setPeerId] = useState();
+  const peer = useMemo(() => new Peer(), []);
+
+  const [peerId, setPeerId] = useState<string>();
 
   useEffect(() => {
     if (!localStorage.getItem('user_name')) {
       navigate('/');
     }
 
-    peer.on('open', function (id: any) {
+    peer.on('open', function (id: string) {
       setPeerId(id);
     });
-  }, []);
+  }, [navigate, peer]);
 
   useEffect(() => {
     peer.on('connection', function (conn: any) {
@@ -68,7 +69,7 @@ export const useConnection = (socket: any) => {
           });
         });
       });
-  }, [streams]);
+  }, [streams, peer]);
 
   useEffect(() => {
     if (socket && peerId) {
@@ -117,6 +118,7 @@ export const useConnection = (socket: any) => {
     }
 
     return () => socket && socket.emit('leave', uuid);
+    // eslint-disable-next-line
   }, [socket, peerId]);
 
   useEffect(() => {
