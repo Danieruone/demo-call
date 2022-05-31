@@ -83,7 +83,7 @@ export const useConnection = (socket: any) => {
       socket.on('userConnected', (data: User) => {
         setUsersInRoom((prev) => [...prev, data]);
 
-        let conn = peer.connect(data.peer);
+        const conn = peer.connect(data.peer);
 
         conn.on('open', function () {
           navigator.mediaDevices
