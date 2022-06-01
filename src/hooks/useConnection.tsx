@@ -71,55 +71,55 @@ export const useConnection = (socket: any) => {
       });
   }, [streams, peer]);
 
-  useEffect(() => {
-    if (socket && peerId) {
-      socket.emit('join', {
-        room: uuid,
-        peer: peerId,
-        name: localStorage.getItem('user_name'),
-      });
+  // useEffect(() => {
+  //   if (socket && peerId) {
+  //     socket.emit('join', {
+  //       room: uuid,
+  //       peer: peerId,
+  //       name: localStorage.getItem('user_name'),
+  //     });
 
-      socket.on('users', (data: any) => setUsersInRoom(data.users));
+  //     socket.on('users', (data: any) => setUsersInRoom(data.users));
 
-      socket.on('userConnected', (data: User) => {
-        setUsersInRoom((prev) => [...prev, data]);
+  //     socket.on('userConnected', (data: User) => {
+  //       setUsersInRoom((prev) => [...prev, data]);
 
-        const conn = peer.connect(data.peer);
+  //       const conn = peer.connect(data.peer);
 
-        conn.on('open', function () {
-          navigator.mediaDevices
-            .getUserMedia({ video: true, audio: true })
-            .then((stream) => {
-              const call = peer.call(data.peer, stream);
-              call.on('stream', function (remoteStream: any) {
-                console.log('contestó remote:', remoteStream);
-                if (
-                  !streams.some(
-                    (stream) => stream.remoteStream.id === remoteStream.id
-                  )
-                ) {
-                  setStreams((prev) => [
-                    ...prev,
-                    { remoteStream, peer: data.peer, name: data.name },
-                  ]);
+  //       conn.on('open', function () {
+  //         navigator.mediaDevices
+  //           .getUserMedia({ video: true, audio: true })
+  //           .then((stream) => {
+  //             const call = peer.call(data.peer, stream);
+  //             call.on('stream', function (remoteStream: any) {
+  //               console.log('contestó remote:', remoteStream);
+  //               if (
+  //                 !streams.some(
+  //                   (stream) => stream.remoteStream.id === remoteStream.id
+  //                 )
+  //               ) {
+  //                 setStreams((prev) => [
+  //                   ...prev,
+  //                   { remoteStream, peer: data.peer, name: data.name },
+  //                 ]);
 
-                  conn.send(
-                    JSON.stringify({
-                      name: localStorage.getItem('user_name'),
-                      peer: peerId,
-                      remoteStreamId: stream.id,
-                    })
-                  );
-                }
-              });
-            });
-        });
-      });
-    }
+  //                 conn.send(
+  //                   JSON.stringify({
+  //                     name: localStorage.getItem('user_name'),
+  //                     peer: peerId,
+  //                     remoteStreamId: stream.id,
+  //                   })
+  //                 );
+  //               }
+  //             });
+  //           });
+  //       });
+  //     });
+  //   }
 
-    return () => socket && socket.emit('leave', uuid);
-    // eslint-disable-next-line
-  }, [socket, peerId]);
+  //   return () => socket && socket.emit('leave', uuid);
+  //   // eslint-disable-next-line
+  // }, [socket, peerId]);
 
   useEffect(() => {
     if (socket) {
