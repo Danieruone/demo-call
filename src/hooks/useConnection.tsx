@@ -1,3 +1,4 @@
+/* eslint-disable */
 import { useEffect, useMemo, useState } from 'react';
 
 // peer
@@ -8,8 +9,8 @@ import { useNavigate } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 
 // types
-import { User } from '../Interfaces/User';
-import { Stream } from '../Interfaces/Stream';
+import { User } from '../interfaces/User';
+import { Stream } from '../interfaces/Stream';
 
 export const useConnection = (socket: any) => {
   const navigate = useNavigate();
