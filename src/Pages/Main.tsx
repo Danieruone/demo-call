@@ -10,8 +10,11 @@ import { CircularProgress } from '@mui/material';
 // hooks
 import { useConnection } from '../hooks/useConnection';
 
+// types
+import { Socket } from 'socket.io-client';
+
 interface Props {
-  socket: any;
+  socket: Socket;
 }
 
 export const Main: FC<Props> = ({ socket }) => {

@@ -9,7 +9,6 @@ export const UserIcon: FC<User & { streams: any }> = ({ name, streams }) => {
   const videoTag = useRef<any>();
 
   useEffect(() => {
-    console.log(streams);
     const streamToRender = streams.find((media: any) => media.name === name);
     if (streamToRender) {
       setStream(streamToRender);

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 
 // router
 import { useNavigate } from 'react-router-dom';
@@ -10,11 +10,8 @@ import Typography from '@mui/material/Typography';
 import TextField from '@mui/material/TextField';
 import Button from '@mui/material/Button';
 
-// npm
-import { v4 as uuidv4 } from 'uuid';
-
 const style = {
-  position: 'absolute' as 'absolute',
+  position: 'absolute',
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
@@ -42,11 +39,10 @@ export const Home = () => {
   };
 
   const generateUUID = () => {
-    const uuid = uuidv4();
     if (!localStorage.getItem('user_name')) {
       setUsernameModal(true);
     } else {
-      navigate(`/${uuid}`);
+      navigate(`/null`);
     }
   };
 
