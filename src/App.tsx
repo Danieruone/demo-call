@@ -2,8 +2,8 @@
 import { Routes, Route } from 'react-router-dom';
 
 // pages
-import { Home } from './pages/Home';
-import { Main } from './pages/Main';
+import { Home } from './Pages/Home';
+import { Main } from './Pages/Main';
 
 // hooks
 import { useSocketHandler } from './hooks/useSocketHandler';

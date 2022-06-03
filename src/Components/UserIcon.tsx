@@ -1,7 +1,7 @@
 import { FC, useEffect, useRef, useState } from 'react';
 
 // types
-import { User } from '../interfaces/User';
+import { User } from '../Interfaces/User';
 
 export const UserIcon: FC<User & { streams: any }> = ({ name, streams }) => {
   const [stream, setStream] = useState<any>();
