@@ -1,47 +1,53 @@
 import { useEffect, useMemo, useState } from 'react';
+
+// peer
 import Peer from 'peerjs';
 
 // router
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 
 // types
 import { User } from '../interfaces/User';
+import { Stream } from '../interfaces/Stream';
 
 export const useConnection = (socket: any) => {
-  const { uuid } = useParams();
   const navigate = useNavigate();
+  const { uuid } = useParams();
 
-  const [streams, setStreams] = useState<any[]>([]);
+  const [streams, setStreams] = useState<Stream[]>([]);
   const [usersInRoom, setUsersInRoom] = useState<User[]>([]);
 
   // peer
   const peer = useMemo(() => new Peer(), []);
-
   const [peerId, setPeerId] = useState<string>();
 
   useEffect(() => {
     if (!localStorage.getItem('user_name')) {
       navigate('/');
     }
+  }, []);
 
+  // get peer id
+  useEffect(() => {
     peer.on('open', function (id: string) {
       setPeerId(id);
     });
-  }, [navigate, peer]);
+  }, []);
 
+  //connection peer input
   useEffect(() => {
     peer.on('connection', function (conn: any) {
       conn.on('data', function (data: any) {
         const emittedData = JSON.parse(data);
-
         if (
           !streams.some(
-            (stream) => stream.remoteStream.id === emittedData.remoteStreamId
+            (stream) => stream.remoteStream?.id === emittedData.remoteStreamId
           )
         ) {
           setStreams((prev) =>
             prev.map((stream) => {
-              if (stream.remoteStream.id === emittedData.remoteStreamId) {
+              if (stream.remoteStream?.id === emittedData.remoteStreamId) {
                 return { ...stream, ...emittedData };
               } else {
                 return stream;
@@ -51,17 +57,35 @@ export const useConnection = (socket: any) => {
         }
       });
     });
+  }, []);
 
+  // manage users
+  useEffect(() => {
+    if (socket && peerId) {
+      if (uuid === 'null') {
+        socket.emit('createRoom');
+      } else {
+        socket.emit('join', {
+          room: uuid,
+          peer: peerId,
+          name: localStorage.getItem('user_name'),
+        });
+      }
+    }
+    return () => socket && socket.emit('leave');
+  }, [socket, peerId]);
+
+  // manage answer in call
+  useEffect(() => {
     navigator.mediaDevices
       .getUserMedia({ video: true, audio: true })
       .then((stream) => {
         peer.on('call', function (call: any) {
           call.answer(stream);
-          call.on('stream', function (remoteStream: any) {
-            console.log('llegó remote:', remoteStream);
+          call.on('stream', function (remoteStream: MediaStream) {
             if (
               !streams.some(
-                (stream) => stream.remoteStream.id === remoteStream.id
+                (stream) => stream.remoteStream?.id === remoteStream.id
               )
             ) {
               setStreams((prev) => [...prev, { remoteStream }]);
@@ -69,71 +93,58 @@ export const useConnection = (socket: any) => {
           });
         });
       });
-  }, [streams, peer]);
+  }, []);
 
-  // useEffect(() => {
-  //   if (socket && peerId) {
-  //     socket.emit('join', {
-  //       room: uuid,
-  //       peer: peerId,
-  //       name: localStorage.getItem('user_name'),
-  //     });
-
-  //     socket.on('users', (data: any) => setUsersInRoom(data.users));
-
-  //     socket.on('userConnected', (data: User) => {
-  //       setUsersInRoom((prev) => [...prev, data]);
-
-  //       const conn = peer.connect(data.peer);
-
-  //       conn.on('open', function () {
-  //         navigator.mediaDevices
-  //           .getUserMedia({ video: true, audio: true })
-  //           .then((stream) => {
-  //             const call = peer.call(data.peer, stream);
-  //             call.on('stream', function (remoteStream: any) {
-  //               console.log('contestó remote:', remoteStream);
-  //               if (
-  //                 !streams.some(
-  //                   (stream) => stream.remoteStream.id === remoteStream.id
-  //                 )
-  //               ) {
-  //                 setStreams((prev) => [
-  //                   ...prev,
-  //                   { remoteStream, peer: data.peer, name: data.name },
-  //                 ]);
-
-  //                 conn.send(
-  //                   JSON.stringify({
-  //                     name: localStorage.getItem('user_name'),
-  //                     peer: peerId,
-  //                     remoteStreamId: stream.id,
-  //                   })
-  //                 );
-  //               }
-  //             });
-  //           });
-  //       });
-  //     });
-  //   }
-
-  //   return () => socket && socket.emit('leave', uuid);
-  //   // eslint-disable-next-line
-  // }, [socket, peerId]);
-
+  // manage listeners
   useEffect(() => {
     if (socket) {
+      socket.on('createRoom', (roomId: string) => {
+        navigate(`/${roomId}`);
+        socket.emit('join', {
+          room: roomId,
+          peer: peerId,
+          name: localStorage.getItem('user_name'),
+        });
+      });
+
+      socket.on('users', (data: any) => {
+        setUsersInRoom(data.users);
+      });
+
+      socket.on('userConnected', (data: User) => {
+        setUsersInRoom((prev) => [...prev, data]);
+
+        const conn = peer.connect(data.peer);
+        conn.on('open', function () {
+          navigator.mediaDevices
+            .getUserMedia({ video: true, audio: true })
+            .then((stream) => {
+              const call = peer.call(data.peer, stream);
+              call.on('stream', function (remoteStream: MediaStream) {
+                console.log(remoteStream);
+                setStreams((prev) => [
+                  ...prev,
+                  { remoteStream, peer: data.peer, name: data.name },
+                ]);
+                conn.send(
+                  JSON.stringify({
+                    name: localStorage.getItem('user_name'),
+                    peer: peerId,
+                    remoteStreamId: stream.id,
+                  })
+                );
+              });
+            });
+        });
+      });
+
       socket.on('leave', (data: string) => {
-        const userLeaved = usersInRoom.find((user) => user.id !== data);
         setUsersInRoom((prev) => prev.filter((user) => user.id !== data));
-        if (userLeaved) {
-          setStreams((prev) =>
-            prev.filter((user) => user.name !== userLeaved.name)
-          );
-        }
+        setStreams([]);
       });
     }
-  }, [usersInRoom, socket]);
+    //eslint-disable-next-line
+  }, [socket]);
 
   return { usersInRoom, streams };
 };
