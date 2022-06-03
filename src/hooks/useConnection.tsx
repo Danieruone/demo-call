@@ -105,13 +105,11 @@ export const useConnection = (socket: any) => {
                 ) {
                   streamsToAdd.push({
                     remoteStream,
-                    peer: data.peer,
                     name: data.name,
                   });
                   conn.send(
                     JSON.stringify({
                       name: localStorage.getItem('user_name'),
-                      peer: peerId,
                       remoteStreamId: stream.id,
                     })
                   );
@@ -123,8 +121,9 @@ export const useConnection = (socket: any) => {
       });
 
       socket.on('leave', (data: string) => {
+        const user = usersInRoom.find((user) => user.id === data);
         setUsersInRoom((prev) => prev.filter((user) => user.id !== data));
-        setStreams([]);
+        setStreams(streams.filter((stream) => stream.name !== user?.name));
       });
     }
     //eslint-disable-next-line
@@ -153,10 +152,6 @@ export const useConnection = (socket: any) => {
         });
       });
   }, [peer]);
-
-  useEffect(() => {
-    console.log(streams);
-  }, [streams]);
 
   return { usersInRoom, streams };
 };
