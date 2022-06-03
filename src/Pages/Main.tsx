@@ -11,6 +11,7 @@ import { CircularProgress } from '@mui/material';
 import { useConnection } from '../hooks/useConnection';
 
 interface Props {
+  // eslint-disable-next-line
   socket: any;
 }
 

@@ -2,14 +2,19 @@ import { FC, useEffect, useRef, useState } from 'react';
 
 // types
 import { User } from '../Interfaces/User';
+import { Stream } from '../Interfaces/Stream';
 
-export const UserIcon: FC<User & { streams: any }> = ({ name, streams }) => {
-  const [stream, setStream] = useState<any>();
+export const UserIcon: FC<User & { streams: Stream[] }> = ({
+  name,
+  streams,
+}) => {
+  const [stream, setStream] = useState<Stream | null>(null);
 
+  // eslint-disable-next-line
   const videoTag = useRef<any>();
 
   useEffect(() => {
-    const streamToRender = streams.find((media: any) => media.name === name);
+    const streamToRender = streams.find((media) => media.name === name);
     if (streamToRender) {
       setStream(streamToRender);
     }
@@ -19,8 +24,8 @@ export const UserIcon: FC<User & { streams: any }> = ({ name, streams }) => {
   useEffect(() => {
     if (stream) {
       videoTag.current.srcObject = stream.remoteStream;
-      videoTag.current.addEventListener('loadedmetadata', () => {
-        videoTag.current.play();
+      videoTag.current?.addEventListener('loadedmetadata', () => {
+        videoTag.current?.play();
       });
     }
   }, [stream]);
