@@ -15,7 +15,7 @@ const style = {
   top: '50%',
   left: '50%',
   transform: 'translate(-50%, -50%)',
-  width: 400,
+  width: 300,
   borderRadius: 5,
   bgcolor: 'background.paper',
   border: '2px solid #000',
@@ -28,17 +28,17 @@ const style = {
 export const Home = () => {
   const navigate = useNavigate();
 
-  const [usernameModal, setUsernameModal] = useState(false);
+  const [usernameModal, setUsernameModal] = useState(true);
   const [username, setUsername] = useState('');
 
   const saveUsername = () => {
     if (username !== '') {
       localStorage.setItem('user_name', username);
-      generateUUID();
+      createMeetingRoom();
     }
   };
 
-  const generateUUID = () => {
+  const createMeetingRoom = () => {
     if (!localStorage.getItem('user_name')) {
       setUsernameModal(true);
     } else {
@@ -53,7 +53,7 @@ export const Home = () => {
           Create your meeting room
         </Typography>
 
-        <Button variant='outlined' onClick={generateUUID}>
+        <Button variant='outlined' onClick={createMeetingRoom}>
           Create meeting room
         </Button>
       </div>
